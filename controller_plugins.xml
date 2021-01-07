@@ -1,0 +1,3 @@
+<library path="lib/libur5_robotiq_85_simulation_controllers_lib">
+    <class name="ur5_robotiq_85_simulation/JointPositionController" type="ur5_robotiq_85_simulation::JointPositionController" base_class_type="controller_interface::ControllerBase" />
+</library>

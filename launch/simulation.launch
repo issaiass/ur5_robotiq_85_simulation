@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="transmission_hw_interface" default="hardware_interface/PositionJointInterface" />
+  <arg name="rviz_config" default="$(find ur5_robotiq_85_moveit_config)/launch/moveit.rviz" />
+
+  <!-- send robot urdf to param server -->
+  <param name="robot_description" 
+         command="$(find xacro)/xacro --inorder '$(find ur5_picknplace)/urdf/ur5_robotiq85.urdf.xacro'
+                   transmission_hw_interface:=$(arg transmission_hw_interface)" />
+
+    <!-- GAZEBO arguments -->
+    <arg name="paused" default="false" />
+    <arg name="use_sim_time" default="true" />
+    <arg name="gui" default="true" />
+    <arg name="headless" default="false" />
+    <arg name="debug" default="false" />
+
+    <!--launch GAZEBO with own world configuration -->
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <!-- <arg name="world_name" value="$(find robotics_assisted_tomography)/worlds/tomography.world"/> -->
+        <arg name="debug" value="$(arg debug)" />
+        <arg name="gui" value="$(arg gui)" />
+        <arg name="paused" value="$(arg paused)" />
+        <arg name="use_sim_time" value="$(arg use_sim_time)" />
+        <arg name="headless" value="$(arg headless)" />
+    </include>
+
+    <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-param robot_description -urdf -model ur5" />
+
+    <!-- Load joint controller configurations from YAML file to parameter server -->
+    <rosparam file="$(find ur5_robotiq_85_simulation)/config/ur5_robotiq_85_control.yaml" command="load" />
+
+
+    <!-- load the controllers -->
+    <node name="controller_spawner"      pkg="controller_manager" type="spawner" respawn="false" output="screen" args="joint_state_controller arm_controller" />
+    <node name="controller_spawner_hand" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="gripper_controller" />
+
+
+    <!-- convert joint states to TF transforms for rviz, etc -->
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
+
+    <include file="$(find ur5_robotiq_85_moveit_config)/launch/planning_context.launch">
+        <arg name="load_robot_description" value="true" />
+    </include>
+    <include file="$(find ur5_robotiq_85_moveit_config)/launch/move_group.launch">
+    </include>
+    <group if="$(arg gui)">
+        <include file="$(find ur5_robotiq_85_moveit_config)/launch/moveit_rviz.launch">
+            <arg name="rviz_config" value="$(arg rviz_config)"/>
+        </include>
+    </group>
+
+    <!--node name="joint_state_desired_publisher" pkg="topic_tools" type="relay" args="joint_states joint_states_desired" /-->
+
+    <!-- launch robot control node for moveit motion planning -->
+    <node pkg="ur5_robotiq_85_simulation" type="robot_control_node" name="robot_control_node" output="screen" />
+
+    <!-- load (not start!) custom joint position controller -->
+    <node pkg="controller_manager" type="spawner" name="joint_position_launcher" args="--stopped joint_position_controller" />
+</launch>
