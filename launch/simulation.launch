@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <launch>
+  <arg name="world_name" default="$(find gazebo_ros)/worlds/empty_world.world"/>
   <arg name="transmission_hw_interface" default="hardware_interface/PositionJointInterface" />
   <arg name="rviz_config" default="$(find ur5_robotiq_85_moveit_config)/launch/moveit.rviz" />
 
@@ -17,7 +18,7 @@
 
     <!--launch GAZEBO with own world configuration -->
     <include file="$(find gazebo_ros)/launch/empty_world.launch">
-        <!-- <arg name="world_name" value="$(find robotics_assisted_tomography)/worlds/tomography.world"/> -->
+        <arg name="world_name" value="$(arg world_name)"/>
         <arg name="debug" value="$(arg debug)" />
         <arg name="gui" value="$(arg gui)" />
         <arg name="paused" value="$(arg paused)" />
@@ -30,11 +31,12 @@
     <!-- Load joint controller configurations from YAML file to parameter server -->
     <rosparam file="$(find ur5_robotiq_85_simulation)/config/ur5_robotiq_85_control.yaml" command="load" />
 
-
     <!-- load the controllers -->
     <node name="controller_spawner"      pkg="controller_manager" type="spawner" respawn="false" output="screen" args="joint_state_controller arm_controller" />
     <node name="controller_spawner_hand" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="gripper_controller" />
 
+
+    <remap from="/head_mount_kinect/depth_registered/points" to="kinect_V2/depth_registered/points"/>
 
     <!-- convert joint states to TF transforms for rviz, etc -->
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
