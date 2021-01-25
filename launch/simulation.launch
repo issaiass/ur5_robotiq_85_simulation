@@ -18,6 +18,7 @@
 
     <!--launch GAZEBO with own world configuration -->
     <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <!--arg name="verbose" value="true" /-->    
         <arg name="world_name" value="$(arg world_name)"/>
         <arg name="debug" value="$(arg debug)" />
         <arg name="gui" value="$(arg gui)" />
@@ -36,7 +37,7 @@
     <node name="controller_spawner_hand" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="gripper_controller" />
 
 
-    <remap from="/head_mount_kinect/depth_registered/points" to="kinect_V2/depth_registered/points"/>
+    <!--remap from="/head_mount_kinect/depth_registered/points" to="kinect_V2/depth_registered/points"/-->
 
     <!-- convert joint states to TF transforms for rviz, etc -->
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
